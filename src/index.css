@@ -1,0 +1,510 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Noto+Serif+JP:wght@400;500;600;700;900&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --freshmart-title: #172E3D;
+  --freshmart-accent: #B82025;
+  --freshmart-description: #65716C;
+  --ds-red: #9F1D24;
+  --ds-red-dark: #74151B;
+  --ds-green: #07583F;
+  --ds-green-2: #13734D;
+  --ds-gold: #C99B49;
+  --ds-gold-light: #F0D99D;
+  --ds-cream: #FFF8E8;
+  --ds-paper: #F4EAD4;
+  --ds-ink: #17364A;
+  --ds-muted: #65716C;
+}
+
+@layer utilities {
+  .bg-seigaiha {
+    background-color: #102F49;
+    background-image: url('/assets/japanese-ui/seigaiha-pattern.svg');
+    background-size: 160px 80px;
+  }
+  .bg-paper-texture {
+    background-color: #FFF9EB;
+    background-image: radial-gradient(ellipse at 12% 15%, rgba(201, 155, 73, 0.09), transparent 38%),
+                      radial-gradient(ellipse at 88% 85%, rgba(201, 155, 73, 0.09), transparent 38%);
+  }
+  .bg-lacquer-red {
+    background: linear-gradient(135deg, #B82025 0%, #8A161C 50%, #6E0F14 100%);
+  }
+  .golden-frame {
+    border: 2px solid #c99b49;
+    outline: 1px solid rgba(201, 155, 73, 0.45);
+    outline-offset: 5px;
+    box-shadow: 0 26px 70px rgba(45, 10, 12, 0.36), inset 0 0 0 1px rgba(255, 248, 232, 0.28);
+  }
+  .homepage-art-background {
+    container-type: inline-size;
+    background-color: #f7eedb;
+    background-image: url('/images/homepage-canva-bg.svg?v=20261026_svg_sea_anchor');
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+  }
+
+  /* Khóa khớp vị trí các section vào các phân vùng nghệ thuật của background Canva */
+  @media (min-width: 1024px) {
+    /* Vùng 1: Lời ngỏ & Câu chuyện thương hiệu (trên nền núi Phú Sĩ & sương khói mây trời 0 -> 1028px) */
+    .homepage-story-zone {
+      min-height: 53.54vw;
+      min-height: 53.54cqw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Vùng 2: 5 Cam kết vàng & Header (cố định chuẩn xác vào vùng biển đêm 1028px -> 1698px theo Ảnh 2) */
+    .homepage-commitments-zone {
+      min-height: 34.9vw;
+      min-height: 34.9cqw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+  }
+  .about-art-background {
+    container-type: inline-size;
+    background-color: #f7eedb;
+    background-image: url('/images/background_page2.webp');
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+  }
+  .homepage-content-wash {
+    background: rgba(255, 249, 235, 0.26);
+  }
+  .homepage-hero-art {
+    background-color: #78151b;
+    background-image:
+      linear-gradient(100deg, rgba(96, 13, 19, 0.88) 0%, rgba(133, 20, 28, 0.58) 52%, rgba(96, 13, 19, 0.2) 100%),
+      url('/images/background-homepage.png');
+    background-position: center 8%;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  .about-hero-art {
+    background-color: #78151b;
+    background-image:
+      linear-gradient(100deg, rgba(96, 13, 19, 0.95) 0%, rgba(133, 20, 28, 0.82) 52%, rgba(96, 13, 19, 0.42) 100%),
+      url('/images/background-page2.svg');
+    background-position: center 5%;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+@media (max-width: 767px) {
+  .homepage-art-background {
+    background-size: cover;
+  }
+  .about-art-background {
+    background-size: cover;
+  }
+
+  .homepage-hero-art,
+  .about-hero-art {
+    background-position: center top;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgba(201, 155, 73, 0.9);
+    outline-offset: 3px;
+  }
+
+  body {
+    font-family: 'Lora', Georgia, serif;
+    background-color: #FAF6EC;
+    color: var(--freshmart-title);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-size: 18px;
+    line-height: 28px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  p, .font-body, .font-lora {
+    font-size: 18px;
+    line-height: 1.65;
+  }
+
+  /* 1. Header font: Be Vietnam Pro cho toàn bộ tiêu đề */
+  h1, h2, h3, h4, h5, h6, .font-header, .font-headline {
+    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif !important;
+  }
+
+  /* 2. Label font: Noto Serif JP cho nhãn, thẻ, badge, cartouche */
+  label,
+  .font-label,
+  .font-grotesk,
+  .badge,
+  [class*="badge-"] {
+    font-family: 'Noto Serif JP', 'Noto Serif', Georgia, serif;
+  }
+
+  h1 {
+    color: var(--freshmart-title);
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+  @media (min-width: 1024px) {
+    h1 {
+      font-size: 40px;
+      line-height: 1.2;
+    }
+  }
+
+  h2 {
+    color: var(--freshmart-title);
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 700;
+  }
+  @media (min-width: 1024px) {
+    h2 {
+      font-size: 32px;
+      line-height: 1.25;
+    }
+  }
+
+  h3 {
+    color: var(--freshmart-title);
+    font-size: 20px;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+  @media (min-width: 1024px) {
+    h3 {
+      font-size: 24px;
+      line-height: 1.3;
+    }
+  }
+}
+
+/* Modal animations */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-modal {
+  animation: fadeSlideUp 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes promotionGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(208, 62, 69, 0.18), 0 4px 12px rgba(208, 62, 69, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(208, 62, 69, 0.08), 0 8px 22px rgba(208, 62, 69, 0.24);
+  }
+}
+
+.promotion-highlight {
+  animation: promotionGlow 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promotion-highlight,
+  .animate-marquee-rtl,
+  .animate-marquee-ltr,
+  .animate-fly-in-left,
+  .animate-fly-in-text {
+    animation: none;
+  }
+}
+
+/* Infinite Marquee animations for single-row product loop */
+@keyframes marqueeRightToLeft {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marqueeLeftToRight {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0%, 0, 0);
+  }
+}
+
+.animate-marquee-rtl {
+  display: flex;
+  width: max-content;
+  animation: marqueeRightToLeft 36s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-ltr {
+  display: flex;
+  width: max-content;
+  animation: marqueeLeftToRight 36s linear infinite;
+  will-change: transform;
+}
+
+/* Pause animation on hover or when paused class is present */
+.marquee-track:hover,
+.marquee-track.is-paused {
+  animation-play-state: paused !important;
+}
+
+/* Fly-in animations for commitment bar (UspBar) */
+@keyframes flyInLeft {
+  0% {
+    opacity: 0;
+    transform: translate3d(-36px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes flyInText {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-fly-in-left {
+  animation: flyInLeft 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fly-in-text {
+  animation: flyInText 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Button & Card Micro-interactions */
+.btn-interaction {
+  transition: transform 250ms ease, background-color 250ms ease, box-shadow 250ms ease;
+}
+.btn-interaction:hover {
+  transform: scale(1.02);
+}
+.btn-interaction:active {
+  transform: scale(0.98);
+}
+
+.card-interaction {
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+}
+.card-interaction:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Horizontal scrollbar for CategoryBar on Desktop */
+.category-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #0E7A32 #E5E7EB;
+}
+.category-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+.category-scrollbar::-webkit-scrollbar-track {
+  background: #E5E7EB;
+  border-radius: 9999px;
+}
+.category-scrollbar::-webkit-scrollbar-thumb {
+  background: #0E7A32;
+  border-radius: 9999px;
+}
+.category-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0A5C25;
+}
+
+/* Horizontal scrollbar for dark green CategoryBar section */
+.category-dark-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.2);
+}
+.category-dark-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+.category-dark-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 9999px;
+}
+/* Horizontal scrollbar for Category Pills Bar */
+.category-pills-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #A7F3D0 transparent;
+}
+.category-pills-scrollbar::-webkit-scrollbar {
+  height: 5px;
+}
+.category-pills-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.category-pills-scrollbar::-webkit-scrollbar-thumb {
+  background: #A7F3D0;
+  border-radius: 9999px;
+}
+.category-pills-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0E7A32;
+}
+
+/* ==========================================================================
+   About Us: Static Pink Highlight (#FFE4E6) & Justified Typography
+   Matches user screenshot exactly, clean without animation
+   ========================================================================== */
+.story-highlight-paragraph {
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-text-justify: inter-word;
+  text-align-last: left;
+  line-height: 1.85;
+}
+
+.story-static-highlight {
+  display: inline;
+  background-color: #FFE4E6;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+
+
+
+
+
+/* ==========================================================================
+   Desktop View on Mobile for Home & About Pages
+   ========================================================================== */
+html.force-desktop-mode,
+body.force-desktop-mode {
+  min-width: 1280px !important;
+  width: 100% !important;
+}
+
+html.force-desktop-mode #root {
+  min-width: 1280px !important;
+  width: 100% !important;
+}
+
+/* ==========================================================================
+   Mobile Bottom Navigation (Thanh menu bar bên dưới)
+   Luôn hiển thị trên tất cả các trang ở giao diện mobile (bao gồm cả homepage và về chúng tôi)
+   Ẩn trên màn hình máy tính / laptop
+   ========================================================================== */
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-bottom-nav {
+    display: block !important;
+  }
+}
+
+html.is-mobile-device .mobile-bottom-nav {
+  display: block !important;
+}
+
+html:not(.is-mobile-device) .mobile-bottom-nav {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  html:not(.is-mobile-device) .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+
+/* Kích thước tỷ lệ khi ở chế độ xem máy tính trên điện thoại (force-desktop-mode) */
+html.is-mobile-device.force-desktop-mode .mobile-bottom-nav {
+  display: block !important;
+  height: 220px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  padding-bottom: 24px !important;
+  border-top-width: 3px !important;
+  background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+html.is-mobile-device.force-desktop-mode .mobile-bottom-nav .nav-icon {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+html.is-mobile-device.force-desktop-mode .mobile-bottom-nav .nav-label {
+  font-size: 32px !important;
+  line-height: 40px !important;
+  margin-top: 8px !important;
+}
+
+html.is-mobile-device.force-desktop-mode .mobile-bottom-nav .nav-badge {
+  top: -14px !important;
+  right: -24px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  font-size: 26px !important;
+  border-width: 3px !important;
+}
+
+html.is-mobile-device.force-desktop-mode body {
+  padding-bottom: 240px !important;
+}
+
+html.is-mobile-device.force-desktop-mode #contact-floating-widget {
+  bottom: 250px !important;
+}
