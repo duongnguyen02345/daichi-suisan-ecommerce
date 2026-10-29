@@ -137,7 +137,7 @@ export const loadMediaAssets = async (options?: {
 export const uploadMediaAsset = async (
   file: File,
   options?: {
-    folder?: 'branding' | 'banners' | 'products' | 'pages' | 'articles' | 'common';
+    folder?: 'branding' | 'banners' | 'products' | 'categories' | 'pages' | 'articles' | 'common';
     altText?: string;
   },
 ): Promise<MediaAsset> => {

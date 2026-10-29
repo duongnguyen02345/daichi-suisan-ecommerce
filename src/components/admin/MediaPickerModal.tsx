@@ -8,7 +8,7 @@ interface MediaPickerModalProps {
   onClose: () => void;
   onSelect: (asset: MediaAsset) => void;
   title?: string;
-  allowedFolder?: 'branding' | 'banners' | 'products' | 'pages' | 'articles' | 'common';
+  allowedFolder?: 'branding' | 'banners' | 'products' | 'categories' | 'pages' | 'articles' | 'common';
 }
 
 export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({

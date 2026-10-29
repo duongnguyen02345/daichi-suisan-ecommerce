@@ -1,18 +1,25 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import {
   BadgePercent,
   ChevronDown,
   ChevronUp,
+  Crop,
   Edit3,
+  FolderOpen,
   FolderTree,
   GripVertical,
+  Loader2,
   RotateCcw,
   Save,
   Trash2,
+  Upload,
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { Category } from '../../types';
 import { isDiscountedProduct, PROMOTION_CATEGORY_SLUG } from '../../lib/catalog';
+import { ImageCropModal } from './ImageCropModal';
+import { MediaPickerModal } from './MediaPickerModal';
+import { dataUrlToFile, uploadMediaAsset } from '../../lib/mediaApi';
 
 const slugify = (value: string) =>
   value
@@ -53,6 +60,96 @@ export const CategoriesSection: React.FC = () => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
+  // Image upload & crop state
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [pendingCropImage, setPendingCropImage] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+
+  const handleFileSelect = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setMessage({ success: false, text: 'Vui lòng chọn tệp hình ảnh (JPG, PNG, WEBP).' });
+      return;
+    }
+
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+    const isOverSize = file.size > MAX_FILE_SIZE;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (!dataUrl) return;
+
+      const img = new Image();
+      img.onload = async () => {
+        const { naturalWidth, naturalHeight } = img;
+        const exceedsDimension = naturalWidth > 800 || naturalHeight > 800;
+        const isNotSquare = Math.abs(naturalWidth - naturalHeight) > 10;
+
+        if (isOverSize || exceedsDimension || isNotSquare) {
+          setPendingCropImage(dataUrl);
+          setCropModalOpen(true);
+        } else {
+          setIsUploadingImage(true);
+          try {
+            const asset = await uploadMediaAsset(file, { folder: 'categories' });
+            setDraft((current) => ({ ...current, image: asset.publicUrl }));
+            setMessage({ success: true, text: 'Đã tải ảnh danh mục thành công.' });
+          } catch (err) {
+            setMessage({ success: false, text: err instanceof Error ? err.message : 'Tải ảnh danh mục thất bại.' });
+          } finally {
+            setIsUploadingImage(false);
+          }
+        }
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingFile(true);
+  };
+
+  const handleFileDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingFile(false);
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingFile(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleOpenCropOnCurrent = () => {
+    if (!draft.image) return;
+    setPendingCropImage(draft.image);
+    setCropModalOpen(true);
+  };
+
+  const handleCropComplete = async (croppedDataUrl: string) => {
+    setIsUploadingImage(true);
+    try {
+      const file = dataUrlToFile(croppedDataUrl, `cat_${Date.now()}.png`);
+      const asset = await uploadMediaAsset(file, { folder: 'categories' });
+      setDraft((current) => ({ ...current, image: asset.publicUrl }));
+      setMessage({ success: true, text: 'Đã cắt và tải ảnh danh mục lên bộ nhớ thành công.' });
+    } catch (err) {
+      setMessage({ success: false, text: err instanceof Error ? err.message : 'Tải ảnh đã cắt lên lưu trữ thất bại.' });
+    } finally {
+      setIsUploadingImage(false);
+      setCropModalOpen(false);
+      setPendingCropImage('');
+    }
+  };
+
   const productCounts = useMemo(() => {
     const counts = new Map<string, number>();
     products.forEach((product) => {
@@ -69,6 +166,7 @@ export const CategoriesSection: React.FC = () => {
   const resetForm = () => {
     setEditingId(null);
     setDraft(emptyDraft);
+    setShowUrlInput(false);
   };
 
   const startEditing = (category: Category) => {
@@ -83,6 +181,7 @@ export const CategoriesSection: React.FC = () => {
       active: category.active ?? true,
     });
     setMessage(null);
+    setShowUrlInput(false);
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -266,15 +365,142 @@ export const CategoriesSection: React.FC = () => {
           </label>
         )}
 
-        <label className="block text-xs font-bold text-gray-700">
-          URL ảnh đại diện
+        {/* Khu vực upload ảnh danh mục chuẩn giao diện quản lý sản phẩm (ảnh 2) */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-bold text-gray-700">
+              Thêm hình ảnh
+            </label>
+            <span className="text-[11px] text-gray-400 font-medium">
+              Tối đa 800x800px
+            </span>
+          </div>
+
           <input
-            value={draft.image}
-            onChange={(event) => setDraft((current) => ({ ...current, image: event.target.value }))}
-            placeholder="https://..."
-            className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl font-normal focus:ring-2 focus:ring-[#0E7A32]"
+            ref={fileInputRef}
+            type="file"
+            accept="image/png, image/jpeg, image/jpg, image/webp"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleFileSelect(e.target.files[0]);
+              }
+            }}
           />
-        </label>
+
+          {draft.image ? (
+            <div className="relative border-2 border-gray-200 rounded-2xl p-3 bg-gray-50/50 flex flex-col items-center">
+              <div className="w-full aspect-square max-h-[220px] rounded-xl overflow-hidden bg-white border border-gray-100 flex items-center justify-center shadow-xs">
+                <img
+                  src={draft.image}
+                  alt={draft.name || 'Ảnh danh mục'}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 mt-3 w-full">
+                <button
+                  type="button"
+                  onClick={() => setIsMediaPickerOpen(true)}
+                  className="flex-1 py-1.5 px-2 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-[#0E7A32] text-xs font-bold rounded-lg flex items-center justify-center gap-1 shadow-xs transition"
+                  title="Chọn từ thư viện hình ảnh"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  <span>Thư viện</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenCropOnCurrent}
+                  className="flex-1 py-1.5 px-2 bg-white border border-gray-200 hover:border-blue-400 hover:text-blue-600 text-gray-700 text-xs font-medium rounded-lg flex items-center justify-center gap-1 shadow-xs transition"
+                  title="Mở công cụ cắt ảnh"
+                >
+                  <Crop className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Cắt ảnh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 py-1.5 px-2 bg-white border border-gray-200 hover:border-gray-400 text-gray-700 text-xs font-medium rounded-lg flex items-center justify-center gap-1 shadow-xs transition"
+                  title="Chọn ảnh khác từ máy tính"
+                >
+                  <Upload className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Đổi ảnh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDraft((current) => ({ ...current, image: '' }))}
+                  className="p-1.5 bg-white border border-gray-200 hover:border-red-400 hover:text-red-600 text-gray-500 rounded-lg shadow-xs transition"
+                  title="Xóa ảnh"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onDragOver={handleFileDragOver}
+              onDragLeave={handleFileDragLeave}
+              onDrop={handleFileDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer min-h-[220px] transition-all duration-200 ${
+                isDraggingFile
+                  ? 'border-blue-500 bg-blue-50/50 scale-[1.01]'
+                  : 'border-gray-200 hover:border-blue-400 bg-gray-50/60 hover:bg-blue-50/20'
+              }`}
+            >
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-2.5 shadow-xs">
+                <Upload className="w-5 h-5 stroke-[2]" />
+              </div>
+              <p className="text-xs font-semibold text-gray-700">
+                Tải ảnh lên hoặc kéo thả vào đây
+              </p>
+              <p className="text-[11px] text-gray-400 mt-0.5">
+                JPG, PNG, WEBP (Tối đa 2MB)
+              </p>
+              <span className="inline-block mt-2 text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200/60 font-medium px-2 py-0.5 rounded-full">
+                Chuẩn 800x800px (Sẽ mở khung cắt nếu vượt quá)
+              </span>
+              <div className="mt-2.5">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMediaPickerOpen(true);
+                  }}
+                  className="px-3 py-1 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-[#0E7A32] text-xs font-bold rounded-lg inline-flex items-center gap-1.5 transition"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  <span>Chọn từ thư viện</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isUploadingImage && (
+            <div className="flex items-center justify-center gap-2 mt-2 text-xs text-blue-600 font-semibold bg-blue-50 p-2 rounded-xl">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Đang tải ảnh lên lưu trữ đám mây...</span>
+            </div>
+          )}
+
+          <div className="mt-2 text-right">
+            <button
+              type="button"
+              onClick={() => setShowUrlInput(!showUrlInput)}
+              className="text-[11px] text-gray-500 hover:text-[#0E7A32] underline"
+            >
+              {showUrlInput ? 'Ẩn nhập URL' : 'Hoặc nhập link URL ảnh'}
+            </button>
+            {showUrlInput && (
+              <input
+                type="text"
+                value={draft.image}
+                onChange={(e) => setDraft((current) => ({ ...current, image: e.target.value }))}
+                placeholder="https://..."
+                className="mt-1.5 w-full text-xs p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0E7A32] font-normal"
+              />
+            )}
+          </div>
+        </div>
 
         <label className="block text-xs font-bold text-gray-700">
           Mô tả
@@ -542,6 +768,33 @@ export const CategoriesSection: React.FC = () => {
           </table>
         </div>
       </section>
+
+      {/* Image Crop Modal (Chuẩn 1:1 tỉ lệ vuông cho danh mục) */}
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={pendingCropImage}
+        title="Cắt ảnh danh mục"
+        aspectRatioLabel="1:1 Vuông"
+        targetWidth={800}
+        targetHeight={800}
+        onClose={() => {
+          setCropModalOpen(false);
+          setPendingCropImage('');
+        }}
+        onComplete={handleCropComplete}
+      />
+
+      {/* Media Picker Modal */}
+      <MediaPickerModal
+        isOpen={isMediaPickerOpen}
+        onClose={() => setIsMediaPickerOpen(false)}
+        onSelect={(asset) => {
+          setDraft((current) => ({ ...current, image: asset.publicUrl }));
+          setMessage({ success: true, text: 'Đã chọn ảnh từ thư viện.' });
+        }}
+        title="Chọn ảnh danh mục từ thư viện"
+        allowedFolder="categories"
+      />
     </div>
   );
 };
